@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "description": "A stunning space-themed glassmorphism clock dashboard with world times and planetary calculations",
-  "author": "Florian Hunter",
+  "author": "Florian Jäger",
   "license": "MIT",
   "homepage": "https://clock.florian-hunter.de",
   "repository": {

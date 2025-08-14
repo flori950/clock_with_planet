@@ -24,7 +24,10 @@ describe('WorldClocks Component', () => {
     const addButton = screen.getByText(/add city/i);
     await user.click(addButton);
     
-    // Should show add city form - look for the select dropdown
-    expect(screen.getByText(/select a city/i)).toBeInTheDocument();
+    // Should show add city form - look for the search input
+    expect(screen.getByPlaceholderText(/search cities/i)).toBeInTheDocument();
+    
+    // Should show region filter
+    expect(screen.getByDisplayValue(/all regions/i)).toBeInTheDocument();
   });
 });

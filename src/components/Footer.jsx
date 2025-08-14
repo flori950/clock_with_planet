@@ -43,7 +43,7 @@ const Footer = () => {
                 animation: 'pulse 2s infinite' 
               }} 
             />
-            <span>by Florian Hunter</span>
+            <span>by Florian Jäger</span>
           </div>
 
           {/* Links */}
@@ -117,13 +117,7 @@ const Footer = () => {
           lineHeight: 1.5,
           textAlign: 'center'
         }}>
-          Built with React 18, Vite, and lots of cosmic inspiration ✨
-          <br />
-          Featuring glassmorphism design and real-time planetary calculations
-          <br />
-          <span style={{ fontSize: '0.7rem', color: 'rgba(0, 191, 255, 0.7)' }}>
-            🔄 Automated dependency updates via Renovate on GitHub
-          </span>
+          {/* Content removed as requested */}
         </div>
       </div>
 
