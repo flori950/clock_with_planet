@@ -1,0 +1,59 @@
+{
+  "name": "space-clock-dashboard",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "A stunning space-themed glassmorphism clock dashboard with world times and planetary calculations",
+  "author": "Florian Hunter",
+  "license": "MIT",
+  "homepage": "https://clock.florian-hunter.de",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/florian-hunter/space-clock-dashboard.git"
+  },
+  "keywords": [
+    "clock",
+    "space",
+    "glassmorphism",
+    "react",
+    "vite",
+    "world-time",
+    "planets"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
+  },
+  "dependencies": {
+    "date-fns": "^3.6.0",
+    "lucide-react": "^0.460.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-helmet-async": "^2.0.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.33.0",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.3",
+    "@types/react": "^18.3.10",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vitest/ui": "^2.0.5",
+    "c8": "^10.1.0",
+    "eslint": "^9.33.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^16.3.0",
+    "jsdom": "^26.0.0",
+    "terser": "^5.43.1",
+    "vite": "^5.4.10",
+    "vitest": "^2.0.5"
+  }
+}
