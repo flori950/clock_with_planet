@@ -12,14 +12,14 @@ describe('MainClock Component', () => {
   it('renders the main clock', () => {
     render(<MainClock theme="space-dark" />);
     
-    expect(screen.getByText(/current time/i)).toBeInTheDocument();
+    expect(screen.getByText(/earth time/i)).toBeInTheDocument();
   });
 
   it('displays time correctly', () => {
     render(<MainClock theme="space-dark" />);
     
-    // Should display mocked time
-    expect(screen.getByText('14:30:45')).toBeInTheDocument();
+    // Should display mocked time - use getAllByText since time appears multiple times
+    expect(screen.getAllByText('14:30:45')[0]).toBeInTheDocument();
   });
 
   it('renders sunrise and sunset information', () => {

@@ -205,31 +205,16 @@ The application is prepared for PWA conversion:
 - 🔄 Service worker (ready to implement)
 - 🔄 Offline support (ready to implement)
 
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
 ## 👨‍💻 Author
 
 **Florian Hunter**
 - 🌐 Website: [florian-hunter.de](https://florian-hunter.de)
 - 💼 GitHub: [@florian-hunter](https://github.com/florian-hunter)
-- ☕ Support: [Buy me a coffee](https://buymeacoffee.com/florianhunter)
-
-## 🙏 Acknowledgments
-
-- 🚀 React team for the incredible framework
-- ⚡ Vite team for the blazing-fast build tool
-- 🎨 Lucide team for beautiful icons
-- 📅 date-fns team for robust date handling
-- 🌌 Space exploration for endless inspiration
 
 ---
 
 <div align="center">
 
 **Made with ❤️ and cosmic inspiration ✨**
-
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black)](https://buymeacoffee.com/florianhunter)
 
 </div>

@@ -24,7 +24,7 @@ describe('WorldClocks Component', () => {
     const addButton = screen.getByText(/add city/i);
     await user.click(addButton);
     
-    // Should show add city form
-    expect(screen.getByPlaceholderText(/city name/i)).toBeInTheDocument();
+    // Should show add city form - look for the select dropdown
+    expect(screen.getByText(/select a city/i)).toBeInTheDocument();
   });
 });

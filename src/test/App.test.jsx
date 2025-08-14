@@ -22,7 +22,7 @@ describe('App Component', () => {
   it('renders the main application', () => {
     render(<AppWithHelmet />);
     
-    expect(screen.getByText('Space Clock Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('🌌 Space Clock')).toBeInTheDocument();
   });
 
   it('renders all main components', () => {
