@@ -1,0 +1,97 @@
+# .htaccess for clock subdirectory deployment
+# This file should be placed in the /clock/ directory on the server
+
+<IfModule mod_mime.c>
+    # Critical: Set correct MIME types for JavaScript modules
+    AddType application/javascript .js
+    AddType application/javascript .mjs
+    AddType text/css .css
+    AddType application/json .json
+    
+    # Font types
+    AddType font/woff2 .woff2
+    AddType font/woff .woff
+    AddType application/font-woff .woff
+    AddType application/font-woff2 .woff2
+    
+    # Image types
+    AddType image/svg+xml .svg
+    AddType image/webp .webp
+</IfModule>
+
+# Force correct content type headers for JS files
+<FilesMatch "\.(js|mjs)$">
+    <IfModule mod_headers.c>
+        Header set Content-Type "application/javascript; charset=utf-8"
+    </IfModule>
+</FilesMatch>
+
+# Force correct content type headers for CSS files
+<FilesMatch "\.css$">
+    <IfModule mod_headers.c>
+        Header set Content-Type "text/css; charset=utf-8"
+    </IfModule>
+</FilesMatch>
+
+# Enable compression for performance
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/x-javascript
+    AddOutputFilterByType DEFLATE application/json
+</IfModule>
+
+# Set cache headers for static assets
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Security headers
+<IfModule mod_headers.c>
+    # Prevent MIME type sniffing (critical for the JS loading issue)
+    Header always set X-Content-Type-Options nosniff
+    
+    # XSS Protection
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Clickjacking protection
+    Header always set X-Frame-Options SAMEORIGIN
+    
+    # Cache control for hashed assets (safe to cache forever)
+    <FilesMatch "\.(js|css|svg|woff2)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+    
+    # HTML should not be cached
+    <FilesMatch "\.html$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires 0
+    </FilesMatch>
+</IfModule>
+
+# Error pages (optional)
+ErrorDocument 404 /clock/index.html
+
+# SPA routing support
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /clock/
+    
+    # Handle asset files directly
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^ - [L]
+    
+    # Handle directories
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+    
+    # For everything else, serve index.html
+    RewriteRule ^ index.html [L]
+</IfModule>

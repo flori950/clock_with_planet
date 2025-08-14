@@ -17,7 +17,9 @@ export default defineConfig({
           utils: ['date-fns', 'lucide-react']
         }
       }
-    }
+    },
+    // Copy .htaccess file to dist
+    copyPublicDir: true
   },
   server: {
     port: 5174,
