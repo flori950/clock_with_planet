@@ -1,0 +1,61 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:base",
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits",
+    ":automergeDigest",
+    ":automergeBranch"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 6am on Monday"],
+  "labels": ["dependencies"],
+  "assignees": ["@flori"],
+  "reviewers": ["@flori"],
+  "platformAutomerge": true,
+  "packageRules": [
+    {
+      "matchDatasources": ["npm"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "automerge": true
+    },
+    {
+      "matchPackageNames": ["react", "react-dom"],
+      "groupName": "React"
+    },
+    {
+      "matchPackageNames": ["@vitejs/plugin-react", "vite"],
+      "groupName": "Vite"
+    },
+    {
+      "matchPackageNames": ["eslint", "@eslint/js", "eslint-plugin-react", "eslint-plugin-react-hooks", "eslint-plugin-react-refresh"],
+      "groupName": "ESLint"
+    },
+    {
+      "matchPackageNames": ["lucide-react"],
+      "groupName": "Icons"
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on Monday"]
+  },
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "branchConcurrentLimit": 5,
+  "semanticCommits": "enabled",
+  "commitMessagePrefix": "⬆️",
+  "commitMessageAction": "Update",
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to {{newVersion}}",
+  "prTitle": "⬆️ Update {{depName}} to {{newVersion}}",
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**"
+  ]
+}
