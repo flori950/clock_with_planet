@@ -3,7 +3,6 @@
 A stunning space-themed glassmorphism clock dashboard featuring real-time world clocks, planetary time calculations, and cosmic visual effects.
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-clock.florian--hunter.de-blue?style=for-the-badge)](https://clock.florian-hunter.de)
-[![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://reactjs.org/)
 [![Vite](https://img.shields.io/badge/Vite-7.1.2-646CFF?style=for-the-badge&logo=vite)](https://vitejs.dev/)
 
@@ -99,10 +98,6 @@ npm run build
 ```
 
 2. Upload the `dist` folder contents to your server's `/clock/` directory.
-
-## 🔄 Dependency Management
-
-This project uses [Renovate](https://renovatebot.com/) for automated dependency updates every 3 hours. The configuration is in `renovate.json`.
 
 ## 🎨 Theme System
 

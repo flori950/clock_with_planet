@@ -25,9 +25,9 @@ describe('WorldClocks Component', () => {
     await user.click(addButton);
     
     // Should show add city form - look for the search input
-    expect(screen.getByPlaceholderText(/search cities/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/type any city name/i)).toBeInTheDocument();
     
-    // Should show region filter
-    expect(screen.getByDisplayValue(/all regions/i)).toBeInTheDocument();
+    // Should show helpful text
+    expect(screen.getByText(/all suggestions come from live worldwide data/i)).toBeInTheDocument();
   });
 });
