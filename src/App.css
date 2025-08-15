@@ -11,12 +11,12 @@
 
 .theme-light {
   --bg-primary: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-  --bg-secondary: rgba(255, 255, 255, 0.8);
-  --border-color: rgba(0, 0, 0, 0.1);
-  --text-primary: #2c3e50;
-  --text-secondary: #7f8c8d;
-  --accent-color: #3498db;
-  --accent-secondary: #9b59b6;
+  --bg-secondary: rgba(255, 255, 255, 0.9);
+  --border-color: rgba(0, 0, 0, 0.15);
+  --text-primary: #1a1a1a;
+  --text-secondary: #4a4a4a;
+  --accent-color: #2c5aa0;
+  --accent-secondary: #7b3f98;
 }
 
 .theme-ocean {
@@ -175,15 +175,86 @@
 
 /* Light theme card adjustments */
 .theme-light .glass-card {
+  background: rgba(255, 255, 255, 0.85);
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.15),
     inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
 }
 
 .theme-light .glass-card:hover {
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: 
-    0 12px 48px rgba(52, 152, 219, 0.2),
+    0 12px 48px rgba(52, 152, 219, 0.25),
     inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* Ensure text visibility in light theme */
+.theme-light .clock-time {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+.theme-light .city-name,
+.theme-light .country-name {
+  color: var(--text-primary) !important;
+}
+
+.theme-light .clock-date {
+  color: var(--text-secondary) !important;
+}
+
+/* Card title and headers */
+.theme-light .card-title {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* Planet names and info */
+.theme-light .planet-name {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+.theme-light .planet-type {
+  color: var(--text-secondary) !important;
+}
+
+.theme-light .planet-time {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* Main clock elements */
+.theme-light .main-clock .clock-time {
+  color: var(--text-primary) !important;
+  font-weight: 700;
+  text-shadow: none;
+}
+
+.theme-light .main-clock .clock-date {
+  color: var(--text-secondary) !important;
+}
+
+.theme-light .clock-timezone {
+  color: var(--text-secondary) !important;
+}
+
+/* Category titles */
+.theme-light .category-title {
+  color: var(--text-primary) !important;
+  font-weight: 600;
+}
+
+/* Input fields in light theme */
+.theme-light input {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid rgba(0, 0, 0, 0.2) !important;
+  color: var(--text-primary) !important;
+}
+
+.theme-light input::placeholder {
+  color: var(--text-secondary) !important;
 }
 
 /* Dashboard Layout */
@@ -381,6 +452,75 @@
   margin-top: 1rem;
 }
 
+.planetary-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.planet-category {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.category-title {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.planet-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  padding: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.planet-card:hover {
+  border-color: var(--accent-color);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(138, 43, 226, 0.2);
+}
+
+.planet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.planet-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.planet-icon {
+  font-size: 1.5rem;
+}
+
+.remove-btn {
+  background: rgba(255, 0, 0, 0.1);
+  border: 1px solid rgba(255, 0, 0, 0.3);
+  color: #ff6b6b;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.remove-btn:hover {
+  background: rgba(255, 0, 0, 0.2);
+  border-color: rgba(255, 0, 0, 0.5);
+}
+
 .planetary-time {
   text-align: center;
   padding: 1rem;
@@ -396,10 +536,17 @@
   font-weight: 500;
 }
 
+.planet-type {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+}
+
 .planet-time {
   color: var(--text-primary);
   font-size: 1.3rem;
   font-family: 'Courier New', monospace;
+  margin-bottom: 0.5rem;
 }
 
 /* Control Buttons */
@@ -509,6 +656,21 @@
   }
   100% {
     text-shadow: 0 0 30px var(--accent-color), 0 0 40px var(--accent-color);
+  }
+}
+
+@keyframes sunPulse {
+  0% {
+    box-shadow: 0 0 25px #ffff00, 0 0 50px #ffd700;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    box-shadow: 0 0 35px #ffff00, 0 0 70px #ffd700, 0 0 90px #ffa500;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+  100% {
+    box-shadow: 0 0 25px #ffff00, 0 0 50px #ffd700;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 

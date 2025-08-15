@@ -1,9 +1,179 @@
-import { useState, useEffect } from 'react';
-import { Globe, Plus, X, Search, MapPin } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Globe, Plus, X, Search, MapPin, Sunrise, Sunset } from 'lucide-react';
 
 const WorldClocks = () => {
+  const [worldTimes, setWorldTimes] = useState([]);
+  const [currentTimes, setCurrentTimes] = useState({});
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Simple but reliable sunrise/sunset calculation for August
+  const calculateSunTimes = useCallback((lat) => {
+    const latitude = parseFloat(lat);
+    
+    // Simple estimation for August (no async, reliable)
+    let sunriseHour = 6;
+    let sunsetHour = 20;
+    
+    // Adjust based on latitude for August
+    if (latitude > 60) { // Arctic
+      sunriseHour = 4.5;
+      sunsetHour = 21.5;
+    } else if (latitude > 52) { // Northern Europe (Berlin area)
+      sunriseHour = 6.0;
+      sunsetHour = 20.1;
+    } else if (latitude > 45) { // Central Europe
+      sunriseHour = 6.2;
+      sunsetHour = 19.8;
+    } else if (latitude > 30) { // Southern Europe
+      sunriseHour = 6.5;
+      sunsetHour = 19.5;
+    } else if (latitude > 0) { // Tropical
+      sunriseHour = 6.3;
+      sunsetHour = 19.2;
+    } else { // Southern Hemisphere (winter)
+      sunriseHour = 7.2;
+      sunsetHour = 17.8;
+    }
+    
+    const formatHour = (hour) => {
+      const h = Math.floor(hour);
+      const m = Math.floor((hour - h) * 60);
+      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+    };
+    
+    return {
+      sunrise: formatHour(sunriseHour),
+      sunset: formatHour(sunsetHour)
+    };
+  }, []);
+
+  const getCountryFlag = useCallback((countryCode) => {
+    if (!countryCode) return <Globe size={16} color="#8a2be2" />;
+    
+    // Return flag emoji for now, but we could replace with SVG icons
+    const flagMap = {
+      'us': '🇺🇸', 'gb': '🇬🇧', 'de': '🇩🇪', 'fr': '🇫🇷', 'it': '🇮🇹', 'es': '🇪🇸',
+      'jp': '🇯🇵', 'cn': '🇨🇳', 'kr': '🇰🇷', 'in': '🇮🇳', 'au': '🇦🇺', 'ca': '🇨🇦',
+      'br': '🇧🇷', 'mx': '🇲🇽', 'ar': '🇦🇷', 'ru': '🇷🇺', 'tr': '🇹🇷', 'eg': '🇪🇬',
+      'za': '🇿🇦', 'ng': '🇳🇬', 'ke': '🇰🇪', 'ma': '🇲🇦', 'ae': '🇦🇪', 'sa': '🇸🇦',
+      'ch': '🇨🇭', 'at': '🇦🇹', 'nl': '🇳🇱', 'be': '🇧🇪', 'se': '🇸🇪', 'no': '🇳🇴',
+      'dk': '🇩🇰', 'fi': '🇫🇮', 'pl': '🇵🇱', 'cz': '🇨🇿', 'hu': '🇭🇺', 'ro': '🇷🇴',
+      'gr': '🇬🇷', 'pt': '🇵🇹', 'ie': '🇮🇪', 'sg': '🇸🇬', 'th': '🇹🇭', 'my': '🇲🇾',
+      'id': '🇮🇩', 'ph': '🇵🇭', 'vn': '🇻🇳', 'nz': '🇳🇿', 'cl': '🇨🇱', 'pe': '🇵🇪',
+      'co': '🇨🇴', 've': '🇻🇪', 'ec': '🇪🇨', 'uy': '🇺🇾', 'py': '🇵🇾', 'bo': '🇧🇴'
+    };
+    
+    return flagMap[countryCode.toLowerCase()] || <Globe size={16} color="#8a2be2" />;
+  }, []);
+
+  const getTimezoneFromCoordinates = useCallback(async (lat, lon) => {
+    // Use coordinate-based timezone estimation (no API calls to avoid CORS)
+    const longitude = parseFloat(lon);
+    const latitude = parseFloat(lat);
+    
+    // Enhanced timezone mapping based on coordinates
+    try {
+      // Europe
+      if (latitude > 35 && latitude < 70) {
+        if (longitude >= -10 && longitude < 10) return 'Europe/London';
+        if (longitude >= 10 && longitude < 25) return 'Europe/Berlin';
+        if (longitude >= 25 && longitude < 45) return 'Europe/Helsinki';
+        if (longitude >= 45 && longitude < 65) return 'Europe/Moscow';
+      }
+      
+      // Asia
+      if (latitude > 10 && latitude < 60) {
+        if (longitude >= 65 && longitude < 85) return 'Asia/Yekaterinburg';
+        if (longitude >= 85 && longitude < 105) return 'Asia/Krasnoyarsk';
+        if (longitude >= 105 && longitude < 125) return 'Asia/Shanghai';
+        if (longitude >= 125 && longitude < 145) return 'Asia/Tokyo';
+      }
+      
+      // North America
+      if (latitude > 25 && latitude < 70) {
+        if (longitude >= -170 && longitude < -140) return 'America/Anchorage';
+        if (longitude >= -140 && longitude < -120) return 'America/Los_Angeles';
+        if (longitude >= -120 && longitude < -105) return 'America/Denver';
+        if (longitude >= -105 && longitude < -85) return 'America/Chicago';
+        if (longitude >= -85 && longitude < -65) return 'America/New_York';
+      }
+      
+      // Australia/Oceania
+      if (latitude < -10 && latitude > -50) {
+        if (longitude >= 110 && longitude < 140) return 'Australia/Perth';
+        if (longitude >= 140 && longitude < 160) return 'Australia/Sydney';
+        if (longitude >= 160 && longitude < -160) return 'Pacific/Auckland';
+      }
+      
+      // Basic longitude-based fallback
+      if (longitude >= -7.5 && longitude < 7.5) return 'Europe/London';
+      if (longitude >= 7.5 && longitude < 22.5) return 'Europe/Berlin';
+      if (longitude >= 22.5 && longitude < 37.5) return 'Europe/Helsinki';
+      if (longitude >= 37.5 && longitude < 52.5) return 'Europe/Moscow';
+      if (longitude >= 52.5 && longitude < 67.5) return 'Asia/Yekaterinburg';
+      if (longitude >= 67.5 && longitude < 82.5) return 'Asia/Omsk';
+      if (longitude >= 82.5 && longitude < 97.5) return 'Asia/Krasnoyarsk';
+      if (longitude >= 97.5 && longitude < 112.5) return 'Asia/Irkutsk';
+      if (longitude >= 112.5 && longitude < 127.5) return 'Asia/Yakutsk';
+      if (longitude >= 127.5 && longitude < 142.5) return 'Asia/Vladivostok';
+      if (longitude >= 142.5 && longitude < 157.5) return 'Asia/Magadan';
+      if (longitude >= 157.5 && longitude < 172.5) return 'Asia/Kamchatka';
+      if (longitude >= 172.5 || longitude < -157.5) return 'Pacific/Auckland';
+      if (longitude >= -157.5 && longitude < -142.5) return 'Pacific/Honolulu';
+      if (longitude >= -142.5 && longitude < -127.5) return 'America/Anchorage';
+      if (longitude >= -127.5 && longitude < -112.5) return 'America/Los_Angeles';
+      if (longitude >= -112.5 && longitude < -97.5) return 'America/Denver';
+      if (longitude >= -97.5 && longitude < -82.5) return 'America/Chicago';
+      if (longitude >= -82.5 && longitude < -67.5) return 'America/New_York';
+      if (longitude >= -67.5 && longitude < -52.5) return 'America/Halifax';
+      if (longitude >= -52.5 && longitude < -37.5) return 'Atlantic/Azores';
+      if (longitude >= -37.5 && longitude < -22.5) return 'Atlantic/Azores';
+      if (longitude >= -22.5 && longitude < -7.5) return 'Atlantic/Cape_Verde';
+      
+      return 'UTC';
+    } catch (error) {
+      console.error('Error determining timezone:', error);
+      return 'UTC';
+    }
+  }, []);
+
+  const fetchCityInfo = useCallback(async (cityName) => {
+    try {
+      // Use OpenStreetMap Nominatim API for geocoding (free, no API key needed)
+      const geocodeResponse = await fetch(
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1&addressdetails=1`
+      );
+      const geocodeData = await geocodeResponse.json();
+      
+      if (geocodeData.length === 0) {
+        throw new Error('City not found');
+      }
+      
+      const { lat, lon, display_name, address } = geocodeData[0];
+      
+      // Get timezone based on coordinates
+      const timezone = await getTimezoneFromCoordinates(lat, lon);
+      
+      return {
+        city: cityName,
+        country: address?.country || 'Unknown',
+        timezone: timezone,
+        coordinates: { lat: parseFloat(lat), lon: parseFloat(lon) },
+        fullName: display_name,
+        flag: getCountryFlag(address?.country_code)
+      };
+    } catch (error) {
+      console.error('Error fetching city info:', error);
+      throw error;
+    }
+  }, [getTimezoneFromCoordinates, getCountryFlag]);
+
   // Generate random starter cities from different continents
-  const getRandomStarterCities = async () => {
+  const getRandomStarterCities = useCallback(async () => {
     const majorCities = [
       // North America
       'New York', 'Los Angeles', 'Chicago', 'Toronto', 'Vancouver', 'Montreal', 'Mexico City', 'Houston', 'Phoenix', 'Philadelphia', 'San Antonio', 'San Diego', 'Dallas', 'San Jose', 'Austin', 'Jacksonville', 'Fort Worth', 'Columbus', 'San Francisco', 'Charlotte', 'Indianapolis', 'Seattle', 'Denver', 'Washington DC', 'Boston', 'Nashville', 'Baltimore', 'Louisville', 'Portland', 'Oklahoma City', 'Milwaukee', 'Las Vegas', 'Albuquerque', 'Tucson', 'Fresno', 'Sacramento', 'Kansas City', 'Mesa', 'Virginia Beach', 'Atlanta', 'Colorado Springs', 'Raleigh', 'Omaha', 'Miami', 'Oakland', 'Minneapolis', 'Tulsa', 'Cleveland', 'Wichita', 'Arlington',
@@ -37,29 +207,22 @@ const WorldClocks = () => {
           city: cityInfo.city,
           country: cityInfo.country,
           timezone: cityInfo.timezone,
-          flag: cityInfo.flag || '🌍'
+          flag: cityInfo.flag || '🌍',
+          coordinates: cityInfo.coordinates
         });
       } catch {
         // Fallback if API fails
         const fallbacks = [
-          { id: 1, city: 'New York', country: 'United States', timezone: 'America/New_York', flag: '🇺🇸' },
-          { id: 2, city: 'London', country: 'United Kingdom', timezone: 'Europe/London', flag: '🇬🇧' },
-          { id: 3, city: 'Tokyo', country: 'Japan', timezone: 'Asia/Tokyo', flag: '🇯🇵' },
-          { id: 4, city: 'Sydney', country: 'Australia', timezone: 'Australia/Sydney', flag: '🇦🇺' }
+          { id: 1, city: 'New York', country: 'United States', timezone: 'America/New_York', flag: '🇺🇸', coordinates: { lat: 40.7128, lon: -74.0060 } },
+          { id: 2, city: 'London', country: 'United Kingdom', timezone: 'Europe/London', flag: '🇬🇧', coordinates: { lat: 51.5074, lon: -0.1278 } },
+          { id: 3, city: 'Tokyo', country: 'Japan', timezone: 'Asia/Tokyo', flag: '🇯🇵', coordinates: { lat: 35.6762, lon: 139.6503 } },
+          { id: 4, city: 'Sydney', country: 'Australia', timezone: 'Australia/Sydney', flag: '🇦🇺', coordinates: { lat: -33.8688, lon: 151.2093 } }
         ];
         return fallbacks;
       }
     }
     return starterCities;
-  };
-
-  const [worldTimes, setWorldTimes] = useState([]);
-  const [currentTimes, setCurrentTimes] = useState({});
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [suggestions, setSuggestions] = useState([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  }, [fetchCityInfo]);
 
   // Initialize with random cities
   useEffect(() => {
@@ -70,16 +233,16 @@ const WorldClocks = () => {
       } catch {
         // Fallback to static cities if API fails
         setWorldTimes([
-          { id: 1, city: 'New York', country: 'United States', timezone: 'America/New_York', flag: '🇺🇸' },
-          { id: 2, city: 'London', country: 'United Kingdom', timezone: 'Europe/London', flag: '🇬🇧' },
-          { id: 3, city: 'Tokyo', country: 'Japan', timezone: 'Asia/Tokyo', flag: '🇯🇵' },
-          { id: 4, city: 'Sydney', country: 'Australia', timezone: 'Australia/Sydney', flag: '🇦🇺' }
+          { id: 1, city: 'New York', country: 'United States', timezone: 'America/New_York', flag: '🇺🇸', coordinates: { lat: 40.7128, lon: -74.0060 } },
+          { id: 2, city: 'London', country: 'United Kingdom', timezone: 'Europe/London', flag: '🇬🇧', coordinates: { lat: 51.5074, lon: -0.1278 } },
+          { id: 3, city: 'Tokyo', country: 'Japan', timezone: 'Asia/Tokyo', flag: '🇯🇵', coordinates: { lat: 35.6762, lon: 139.6503 } },
+          { id: 4, city: 'Sydney', country: 'Australia', timezone: 'Australia/Sydney', flag: '🇦🇺', coordinates: { lat: -33.8688, lon: 151.2093 } }
         ]);
       }
     };
     
     initializeCities();
-  }, []);
+  }, [getRandomStarterCities]);
 
   // Get live suggestions from geocoding API
   useEffect(() => {
@@ -119,30 +282,12 @@ const WorldClocks = () => {
 
     const timeoutId = setTimeout(getSuggestions, 300); // Debounce API calls
     return () => clearTimeout(timeoutId);
-  }, [searchQuery]);
-
-  const getCountryFlag = (countryCode) => {
-    if (!countryCode) return '🌍';
-    
-    const flagMap = {
-      'us': '🇺🇸', 'gb': '🇬🇧', 'de': '🇩🇪', 'fr': '🇫🇷', 'it': '🇮🇹', 'es': '🇪🇸',
-      'jp': '🇯🇵', 'cn': '🇨🇳', 'kr': '🇰🇷', 'in': '🇮🇳', 'au': '🇦🇺', 'ca': '🇨🇦',
-      'br': '🇧🇷', 'mx': '🇲🇽', 'ar': '🇦🇷', 'ru': '🇷🇺', 'tr': '🇹🇷', 'eg': '🇪🇬',
-      'za': '🇿🇦', 'ng': '🇳🇬', 'ke': '🇰🇪', 'ma': '🇲🇦', 'ae': '🇦🇪', 'sa': '🇸🇦',
-      'ch': '🇨🇭', 'at': '🇦🇹', 'nl': '🇳🇱', 'be': '🇧🇪', 'se': '🇸🇪', 'no': '🇳🇴',
-      'dk': '🇩🇰', 'fi': '🇫🇮', 'pl': '🇵🇱', 'cz': '🇨🇿', 'hu': '🇭🇺', 'ro': '🇷🇴',
-      'gr': '🇬🇷', 'pt': '🇵🇹', 'ie': '🇮🇪', 'sg': '🇸🇬', 'th': '🇹🇭', 'my': '🇲🇾',
-      'id': '🇮🇩', 'ph': '🇵🇭', 'vn': '🇻🇳', 'nz': '🇳🇿', 'cl': '🇨🇱', 'pe': '🇵🇪',
-      'co': '🇨🇴', 've': '🇻🇪', 'ec': '🇪🇨', 'uy': '🇺🇾', 'py': '🇵🇾', 'bo': '🇧🇴'
-    };
-    
-    return flagMap[countryCode.toLowerCase()] || '🌍';
-  };
+  }, [searchQuery, getCountryFlag]);
 
   useEffect(() => {
     const updateTimes = () => {
       const times = {};
-      worldTimes.forEach(({ id, timezone }) => {
+      worldTimes.forEach(({ id, timezone, coordinates }) => {
         try {
           const time = new Date().toLocaleString('en-US', {
             timeZone: timezone,
@@ -157,9 +302,16 @@ const WorldClocks = () => {
             month: 'short',
             day: 'numeric'
           });
-          times[id] = { time, date };
+          
+          // Calculate sunrise/sunset if coordinates are available
+          let sunTimes = { sunrise: '--:--', sunset: '--:--' };
+          if (coordinates && coordinates.lat) {
+            sunTimes = calculateSunTimes(coordinates.lat);
+          }
+          
+          times[id] = { time, date, ...sunTimes };
         } catch {
-          times[id] = { time: '--:--:--', date: 'Invalid timezone' };
+          times[id] = { time: '--:--:--', date: 'Invalid timezone', sunrise: '--:--', sunset: '--:--' };
         }
       });
       setCurrentTimes(times);
@@ -168,73 +320,7 @@ const WorldClocks = () => {
     updateTimes();
     const timer = setInterval(updateTimes, 1000);
     return () => clearInterval(timer);
-  }, [worldTimes]);
-
-  const fetchCityInfo = async (cityName) => {
-    try {
-      // Use OpenStreetMap Nominatim API for geocoding (free, no API key needed)
-      const geocodeResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cityName)}&format=json&limit=1&addressdetails=1`
-      );
-      const geocodeData = await geocodeResponse.json();
-      
-      if (geocodeData.length === 0) {
-        throw new Error('City not found');
-      }
-      
-      const { lat, lon, display_name, address } = geocodeData[0];
-      
-      // Get timezone based on coordinates
-      const timezone = await getTimezoneFromCoordinates(lat, lon);
-      
-      return {
-        city: cityName,
-        country: address?.country || 'Unknown',
-        timezone: timezone,
-        coordinates: { lat: parseFloat(lat), lon: parseFloat(lon) },
-        fullName: display_name
-      };
-    } catch (error) {
-      console.error('Error fetching city info:', error);
-      throw error;
-    }
-  };
-
-  const getTimezoneFromCoordinates = async (lat, lon) => {
-    try {
-      // Simple coordinate-based timezone estimation
-      const longitude = parseFloat(lon);
-      
-      // Basic timezone estimation based on longitude
-      // This is a simplified approach - in production you'd want a proper timezone API
-      if (longitude >= -7.5 && longitude < 7.5) return 'Europe/London';
-      if (longitude >= 7.5 && longitude < 22.5) return 'Europe/Berlin';
-      if (longitude >= 22.5 && longitude < 37.5) return 'Europe/Helsinki';
-      if (longitude >= 37.5 && longitude < 52.5) return 'Europe/Moscow';
-      if (longitude >= 52.5 && longitude < 67.5) return 'Asia/Yekaterinburg';
-      if (longitude >= 67.5 && longitude < 82.5) return 'Asia/Omsk';
-      if (longitude >= 82.5 && longitude < 97.5) return 'Asia/Krasnoyarsk';
-      if (longitude >= 97.5 && longitude < 112.5) return 'Asia/Irkutsk';
-      if (longitude >= 112.5 && longitude < 127.5) return 'Asia/Yakutsk';
-      if (longitude >= 127.5 && longitude < 142.5) return 'Asia/Vladivostok';
-      if (longitude >= 142.5 && longitude < 157.5) return 'Asia/Magadan';
-      if (longitude >= 157.5 || longitude < -157.5) return 'Pacific/Auckland';
-      if (longitude >= -157.5 && longitude < -142.5) return 'Pacific/Honolulu';
-      if (longitude >= -142.5 && longitude < -127.5) return 'America/Anchorage';
-      if (longitude >= -127.5 && longitude < -112.5) return 'America/Los_Angeles';
-      if (longitude >= -112.5 && longitude < -97.5) return 'America/Denver';
-      if (longitude >= -97.5 && longitude < -82.5) return 'America/Chicago';
-      if (longitude >= -82.5 && longitude < -67.5) return 'America/New_York';
-      if (longitude >= -67.5 && longitude < -52.5) return 'America/Halifax';
-      if (longitude >= -52.5 && longitude < -37.5) return 'America/St_Johns';
-      if (longitude >= -37.5 && longitude < -22.5) return 'Atlantic/Azores';
-      if (longitude >= -22.5 && longitude < -7.5) return 'Atlantic/Cape_Verde';
-      
-      return 'UTC'; // fallback
-    } catch {
-      return 'UTC';
-    }
-  };
+  }, [worldTimes, calculateSunTimes]);
 
   const addCity = async (suggestionData) => {
     // Check if city already exists
@@ -255,7 +341,8 @@ const WorldClocks = () => {
           city: suggestionData.city,
           country: suggestionData.country,
           timezone: timezone,
-          flag: suggestionData.flag || '🌍'
+          flag: suggestionData.flag || '🌍',
+          coordinates: { lat: suggestionData.lat, lon: suggestionData.lon }
         }]);
         
         setShowAddForm(false);
@@ -297,151 +384,121 @@ const WorldClocks = () => {
           <Globe className="card-icon" size={24} />
           World Clocks
         </h2>
-        <button 
-          className="control-btn"
+        <button
           onClick={() => setShowAddForm(!showAddForm)}
+          className="add-button"
+          aria-label="Add city"
+          style={{
+            background: 'rgba(138, 43, 226, 0.2)',
+            border: '1px solid rgba(138, 43, 226, 0.5)',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
         >
-          <Plus size={16} />
-          Add City
+          <Plus size={20} color="#8a2be2" />
         </button>
       </div>
 
       {showAddForm && (
-        <div className="glass-card" style={{ marginBottom: '1.5rem', padding: '1rem', position: 'relative' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            
-            {/* Single Search Interface */}
-            <div style={{ position: 'relative' }}>
-              <Search size={16} style={{ 
-                position: 'absolute', 
-                left: '10px', 
-                top: '50%', 
-                transform: 'translateY(-50%)',
-                color: 'rgba(255, 255, 255, 0.7)',
-                zIndex: 2
-              }} />
-              <input
-                type="text"
-                placeholder="Type any city name... (e.g., Paris, Berlin, Melbourne)"
-                value={searchQuery}
-                onChange={handleSearchChange}
-                onFocus={() => searchQuery && setShowSuggestions(true)}
-                style={{
-                  width: '100%',
-                  padding: '0.75rem 0.75rem 0.75rem 2.5rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  border: '2px solid rgba(0, 191, 255, 0.3)',
-                  borderRadius: '12px',
-                  color: 'white',
-                  fontSize: '1rem',
-                  fontWeight: '500'
-                }}
-              />
-
-              {/* Auto-suggestions dropdown */}
-              {showSuggestions && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  maxHeight: '300px',
-                  overflowY: 'auto',
-                  backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                  border: '1px solid rgba(0, 191, 255, 0.3)',
-                  borderRadius: '12px',
-                  marginTop: '0.5rem',
-                  zIndex: 10,
-                  backdropFilter: 'blur(10px)'
-                }}>
-                  {isLoading ? (
-                    <div style={{ 
-                      padding: '1rem', 
-                      textAlign: 'center', 
-                      color: 'rgba(255, 255, 255, 0.7)' 
-                    }}>
-                      🔍 Searching worldwide...
-                    </div>
-                  ) : suggestions.length === 0 ? (
-                    <div style={{ 
-                      padding: '1rem', 
-                      textAlign: 'center', 
-                      color: 'rgba(255, 255, 255, 0.7)' 
-                    }}>
-                      No cities found. Try a different search term.
-                    </div>
-                  ) : (
-                    suggestions.map((suggestion, index) => (
-                      <div
-                        key={`${suggestion.city}-${suggestion.country}-${index}`}
-                        onClick={() => handleSuggestionClick(suggestion)}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '1rem',
-                          padding: '0.75rem 1rem',
-                          cursor: 'pointer',
-                          borderBottom: index < suggestions.length - 1 ? '1px solid rgba(255, 255, 255, 0.1)' : 'none',
-                          transition: 'all 0.2s ease',
-                          backgroundColor: 'transparent'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor = 'rgba(0, 191, 255, 0.1)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = 'transparent';
-                        }}
-                      >
-                        <span style={{ fontSize: '1.2rem' }}>{suggestion.flag}</span>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ 
-                            fontWeight: 'bold', 
-                            color: 'white',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem'
-                          }}>
-                            {suggestion.city}
-                          </div>
-                          <div style={{ 
-                            fontSize: '0.8rem', 
-                            color: 'rgba(255, 255, 255, 0.7)' 
-                          }}>
-                            {suggestion.country}{suggestion.region ? ` • ${suggestion.region}` : ''}
-                          </div>
-                        </div>
-                        <MapPin size={14} style={{ color: 'rgba(0, 191, 255, 0.7)' }} />
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Help text */}
-            <div style={{ 
-              fontSize: '0.8rem', 
-              color: 'rgba(255, 255, 255, 0.6)',
-              textAlign: 'center',
-              lineHeight: '1.4'
-            }}>
-              🌍 All suggestions come from live worldwide data! Start typing any city name to see real locations with their countries and regions.
-            </div>
-
+        <div style={{
+          background: 'rgba(138, 43, 226, 0.1)',
+          borderRadius: '10px',
+          padding: '1rem',
+          marginBottom: '1rem'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem' }}>
+            <Search size={16} style={{ marginRight: '0.5rem', color: 'rgba(255, 255, 255, 0.6)' }} />
+            <input
+              type="text"
+              placeholder="Search cities worldwide..."
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onFocus={() => searchQuery && setShowSuggestions(true)}
+              style={{
+                background: 'rgba(255, 255, 255, 0.1)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '5px',
+                padding: '0.5rem',
+                color: 'white',
+                flex: 1
+              }}
+            />
             <button
               onClick={closeAddForm}
               style={{
-                padding: '0.5rem 1rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                borderRadius: '8px',
-                color: 'white',
+                background: 'transparent',
+                border: 'none',
+                color: 'rgba(255, 255, 255, 0.6)',
+                marginLeft: '0.5rem',
                 cursor: 'pointer'
               }}
             >
-              Cancel
+              <X size={16} />
             </button>
           </div>
+
+          {/* Auto-suggestions dropdown */}
+          {showSuggestions && (
+            <div style={{
+              background: 'rgba(0, 0, 0, 0.8)',
+              borderRadius: '8px',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              maxHeight: '200px',
+              overflowY: 'auto'
+            }}>
+              {isLoading ? (
+                <div style={{ 
+                  padding: '1rem', 
+                  textAlign: 'center', 
+                  color: 'rgba(255, 255, 255, 0.7)' 
+                }}>
+                  🔍 Searching worldwide...
+                </div>
+              ) : suggestions.length === 0 ? (
+                <div style={{ 
+                  padding: '1rem', 
+                  textAlign: 'center', 
+                  color: 'rgba(255, 255, 255, 0.7)' 
+                }}>
+                  No cities found. Try a different search term.
+                </div>
+              ) : (
+                suggestions.map((suggestion, index) => (
+                  <div
+                    key={`${suggestion.city}-${suggestion.country}-${index}`}
+                    onClick={() => handleSuggestionClick(suggestion)}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.1)',
+                      borderRadius: '5px',
+                      padding: '0.5rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      marginBottom: '0.25rem',
+                      transition: 'background 0.2s ease'
+                    }}
+                    onMouseOver={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.2)'}
+                    onMouseOut={(e) => e.target.style.background = 'rgba(255, 255, 255, 0.1)'}
+                  >
+                    <span style={{ marginRight: '0.5rem' }}>{suggestion.flag}</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 'bold', fontSize: '0.9rem' }}>{suggestion.city}</div>
+                      <div style={{ fontSize: '0.7rem', color: 'rgba(255, 255, 255, 0.6)' }}>
+                        {suggestion.country}{suggestion.region ? ` • ${suggestion.region}` : ''}
+                      </div>
+                    </div>
+                    <MapPin size={12} style={{ color: 'rgba(138, 43, 226, 0.7)' }} />
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       )}
 
@@ -469,6 +526,31 @@ const WorldClocks = () => {
             </div>
             <div className="clock-date">
               {currentTimes[id]?.date || 'Loading...'}
+            </div>
+            
+            {/* Sunrise/Sunset Information */}
+            <div className="sun-times" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '0.75rem',
+              padding: '0.5rem',
+              background: 'rgba(255, 165, 0, 0.1)',
+              borderRadius: '8px',
+              fontSize: '0.8rem'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Sunrise size={14} color="#ffb366" />
+                <span style={{ color: '#ffb366' }}>
+                  {currentTimes[id]?.sunrise || '--:--'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Sunset size={14} color="#ff8c42" />
+                <span style={{ color: '#ff8c42' }}>
+                  {currentTimes[id]?.sunset || '--:--'}
+                </span>
+              </div>
             </div>
           </div>
         ))}

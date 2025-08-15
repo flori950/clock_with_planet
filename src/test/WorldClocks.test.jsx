@@ -13,21 +13,21 @@ describe('WorldClocks Component', () => {
   it('renders add city button', () => {
     render(<WorldClocks theme="space-dark" />);
     
-    expect(screen.getByText(/add city/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add city/i })).toBeInTheDocument();
   });
 
   it('allows adding a new city', async () => {
     const user = userEvent.setup();
     render(<WorldClocks theme="space-dark" />);
     
+    // Initially, the add form should not be visible
+    expect(screen.queryByPlaceholderText(/search cities worldwide/i)).not.toBeInTheDocument();
+    
     // Click add city button
-    const addButton = screen.getByText(/add city/i);
+    const addButton = screen.getByRole('button', { name: /add city/i });
     await user.click(addButton);
     
     // Should show add city form - look for the search input
-    expect(screen.getByPlaceholderText(/type any city name/i)).toBeInTheDocument();
-    
-    // Should show helpful text
-    expect(screen.getByText(/all suggestions come from live worldwide data/i)).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/search cities worldwide/i)).toBeInTheDocument();
   });
 });
