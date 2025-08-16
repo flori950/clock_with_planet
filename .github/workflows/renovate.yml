@@ -1,26 +1,17 @@
 name: Renovate
 
 on:
-  schedule:
-    # Run every Monday at 6:00 AM UTC
-    - cron: "0 6 * * 1"
   workflow_dispatch:
     inputs:
-      repoCache:
-        description: "Reset or disable the cache?"
+      logLevel:
+        description: 'Set log level'
+        required: false
+        default: 'info'
         type: choice
-        default: enabled
         options:
-          - enabled
-          - disabled
-          - reset
-  # Optional: Run on push to main for testing (remove in production)
-  push:
-    branches: [main]
-    paths:
-      - "renovate.json"
-      - ".renovaterc"
-      - "package.json"
+          - info
+          - debug
+          - trace
 
 jobs:
   renovate:
