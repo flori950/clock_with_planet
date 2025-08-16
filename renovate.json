@@ -2,60 +2,90 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:base",
-    "config:recommended",
     ":dependencyDashboard",
     ":semanticCommits",
     ":automergeDigest",
-    ":automergeBranch"
+    ":automergeMinor",
+    "npm:unpublishSafe"
   ],
-  "timezone": "UTC",
-  "schedule": ["before 6am on Monday"],
+  "timezone": "Europe/Berlin",
   "labels": ["dependencies"],
-  "assignees": ["@flori"],
-  "reviewers": ["@flori"],
-  "platformAutomerge": true,
+  "description": "Automated dependency updates",
+  "assignees": ["flori950"],
+  "reviewers": ["flori950"],
   "packageRules": [
     {
-      "matchDatasources": ["npm"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "automerge": true
+      "matchDepTypes": ["devDependencies"],
+      "labels": ["dev-dependencies"],
+      "automerge": true,
+      "platformAutomerge": true
+    },
+    {
+      "matchPackagePatterns": ["^@types/"],
+      "labels": ["type-definitions"],
+      "automerge": true,
+      "platformAutomerge": true
+    },
+    {
+      "matchDepTypes": ["dependencies"],
+      "labels": ["production-dependencies"],
+      "automerge": false,
+      "reviewers": ["flori950"]
     },
     {
       "matchPackageNames": ["react", "react-dom"],
-      "groupName": "React"
+      "groupName": "React",
+      "labels": ["react-update"]
     },
     {
-      "matchPackageNames": ["@vitejs/plugin-react", "vite"],
-      "groupName": "Vite"
+      "matchPackagePatterns": ["^@vitejs/", "^vite"],
+      "groupName": "Vite",
+      "labels": ["vite-update"]
     },
     {
-      "matchPackageNames": ["eslint", "@eslint/js", "eslint-plugin-react", "eslint-plugin-react-hooks", "eslint-plugin-react-refresh"],
-      "groupName": "ESLint"
+      "matchPackagePatterns": ["^@testing-library/", "^vitest", "^jsdom"],
+      "groupName": "Testing",
+      "labels": ["testing-update"],
+      "automerge": true,
+      "platformAutomerge": true
     },
     {
-      "matchPackageNames": ["lucide-react"],
-      "groupName": "Icons"
+      "matchPackagePatterns": ["^eslint", "^prettier", "^@typescript-eslint/"],
+      "groupName": "Code Quality",
+      "labels": ["code-quality"],
+      "automerge": true,
+      "platformAutomerge": true
     }
   ],
   "vulnerabilityAlerts": {
-    "enabled": true
-  },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 6am on Monday"]
+    "labels": ["security"],
+    "assignees": ["flori950"],
+    "reviewers": ["flori950"],
+    "automerge": false
   },
   "prConcurrentLimit": 3,
   "prHourlyLimit": 2,
-  "branchConcurrentLimit": 5,
-  "semanticCommits": "enabled",
-  "commitMessagePrefix": "⬆️",
-  "commitMessageAction": "Update",
+  "commitMessagePrefix": "{{#if isPin}}pin{{else}}{{#if isRollback}}revert{{else}}update{{/if}}{{/if}}",
   "commitMessageTopic": "{{depName}}",
-  "commitMessageExtra": "to {{newVersion}}",
-  "prTitle": "⬆️ Update {{depName}} to {{newVersion}}",
-  "ignorePaths": [
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/build/**"
-  ]
+  "commitMessageAction": "to",
+  "commitMessageExtra": "{{#if isLockfileUpdate}}(lockfile){{else}}{{newVersion}}{{/if}}",
+  "prBodyDefinitions": {
+    "Package": "{{#if packageFileDir}}`{{{packageFileDir}}}`{{else}}`{{{packageFile}}}`{{/if}}",
+    "Update": "[{{displayFrom}} → {{displayTo}}]({{#if depName}}https://renovatebot.com/diffs/npm/{{replace '/' '%2f' depName}}/{{{currentVersion}}}/{{{newVersion}}}{{/if}})",
+    "New version": "{{#if displayTo}}**{{displayTo}}**{{else}}*unknown*{{/if}}"
+  },
+  "prBodyColumns": [
+    "Package",
+    "Update",
+    "New version"
+  ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true,
+    "platformAutomerge": true
+  },
+  "postUpdateOptions": ["pnpmDedupe"],
+  "separateMinorPatch": true,
+  "separateMajorMinor": true,
+  "rangeStrategy": "bump"
 }

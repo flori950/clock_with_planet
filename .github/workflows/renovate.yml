@@ -2,34 +2,67 @@ name: Renovate
 
 on:
   schedule:
-    # Run every 3 hours
-    - cron: '0 */3 * * *'
+    # Run every Monday at 6:00 AM UTC
+    - cron: "0 6 * * 1"
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: 'Set log level'
-        required: false
-        default: 'info'
+      repoCache:
+        description: "Reset or disable the cache?"
         type: choice
+        default: enabled
         options:
-          - info
-          - debug
-          - trace
+          - enabled
+          - disabled
+          - reset
+  # Optional: Run on push to main for testing (remove in production)
+  push:
+    branches: [main]
+    paths:
+      - "renovate.json"
+      - ".renovaterc"
+      - "package.json"
 
 jobs:
   renovate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Check if Renovate Token exists
+        id: check-token
+        run: |
+          if [ -z "${{ secrets.RENOVATE_TOKEN }}" ]; then
+            echo "token_exists=false" >> $GITHUB_OUTPUT
+          else
+            echo "token_exists=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: Self-hosted Renovate
+        if: steps.check-token.outputs.token_exists == 'true'
         uses: renovatebot/github-action@v43.0.7
         with:
           configurationFile: renovate.json
+          token: ${{ secrets.RENOVATE_TOKEN }}
         env:
-          LOG_LEVEL: ${{ inputs.logLevel || 'info' }}
+          LOG_LEVEL: "debug"
           RENOVATE_REPOSITORIES: ${{ github.repository }}
           RENOVATE_USERNAME: ${{ github.repository_owner }}
-          RENOVATE_GIT_AUTHOR: 'Renovate Bot <bot@renovateapp.com>'
-          RENOVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RENOVATE_GIT_AUTHOR: "Renovate Bot <bot@renovateapp.com>"
+
+      - name: Renovate Setup Info
+        if: steps.check-token.outputs.token_exists == 'false'
+        run: |
+          echo "🤖 Renovate Bot Setup Required!"
+          echo ""
+          echo "To enable automatic dependency updates, you have two options:"
+          echo ""
+          echo "Option 1 (Recommended): Install Renovate GitHub App"
+          echo "👉 https://github.com/apps/renovate"
+          echo ""
+          echo "Option 2: Self-hosted with GitHub Actions"
+          echo "1. Create a GitHub Personal Access Token with 'repo' permissions"
+          echo "2. Add it as repository secret 'RENOVATE_TOKEN'"
+          echo "3. Go to Settings > Secrets and variables > Actions"
+          echo ""
+          echo "See RENOVATE.md for detailed instructions."
